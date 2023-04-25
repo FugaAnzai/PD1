@@ -6,56 +6,63 @@ using UnityEngine;
 public class GameManagerScript : MonoBehaviour
 {
     //配列の宣言
-    int[] map;
+    int[,] map;
+    GameObject[,] field;
+    public GameObject playerPrefab;
+    public GameObject boxPrefab;
 
-    void PrintArray()
+    Vector2Int GetPlayerIndex()
     {
-        string debugText = "";
 
-        for (int i = 0; i < map.Length; i++)
+        for (int y = 0; y < field.GetLength(0); y++)
         {
 
-
-            debugText += map[i].ToString() + ",";
-
-        }
-
-        Debug.Log(debugText);
-
-    }
-
-    int GetPlayerIndex()
-    {
-        for(int i =0; i < map.Length; i++)
-        {
-            if (map[i] == 1)
+            for(int x = 0; x < field.GetLength(1); x++)
             {
-                return i;
+                if (field[y, x] != null && field[y,x].tag == "Player")
+                {
+                    Vector2Int resultTrue = new(x, y);
+                    Debug.Log(resultTrue.ToString());
+                    return resultTrue;
+                }
             }
         }
 
-        return -1;
+        Vector2Int resultFalse = new(-1, -1);
+
+        return resultFalse;
     }
 
-    bool MoveNumber(int number,int moveFrom,int moveTo)
+    bool MoveObject(string tag,Vector2Int moveFrom, Vector2Int moveTo)
     {
-        if(moveTo < 0 || moveTo >= map.Length)
+        if(moveTo.x < 0 || moveTo.x >= field.GetLength(1))
         {
+            Debug.Log("Failed");
             return false;
         }
 
-        if (map[moveTo] == 2)
+        if(moveTo.y < 0 || moveTo.y >= field.GetLength(0))
         {
-            int direction = moveTo - moveFrom;
+            Debug.Log("Failed");
+            return false;
+        }
 
-            bool success = MoveNumber(2, moveTo, moveTo + direction);
+        if (field[moveTo.y, moveTo.x] != null && field[moveTo.y,moveTo.x].tag == "Box")
+        {
+            Vector2Int direction = moveTo - moveFrom;
+
+            bool success = MoveObject("Box", moveTo, moveTo + direction);
 
             if(!success) { return false; }
 
         }
 
-        map[moveTo] = number;
-        map[moveFrom] = 0;
+        //オブジェクトの座標を変更
+        field[moveFrom.y, moveFrom.x].transform.position = new Vector3(moveTo.x, field.GetLength(0) - moveTo.y, 0);
+        //現在のプレイヤーオブジェクトを移動先に代入
+        field[moveTo.y, moveTo.x] = field[moveFrom.y, moveFrom.x];
+        //移動前のオブジェクトにnullを代入
+        field[moveFrom.y, moveFrom.x] = null;
         return true;
 
     }
@@ -63,9 +70,39 @@ public class GameManagerScript : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        map = new int[] { 0, 2, 0, 1, 0, 2, 0, 2, 0 };
+        map = new int[,]{
+            { 0,0,0,2,0 },
+            { 0,2,1,0,0 },
+            { 0,0,0,0,0 }
+        };
 
-        PrintArray();
+        field = new GameObject[map.GetLength(0),map.GetLength(1)];
+
+        for (int y = 0; y < map.GetLength(0); y++)
+        {
+            for (int x = 0; x < map.GetLength(1); x++)
+            {
+                //1だった場合、プレイヤーをInit
+                if (map[y, x] == 1)
+                {
+                    field[y, x] = Instantiate(
+                    playerPrefab,
+                    new Vector3(x, map.GetLength(0) - y, 0),
+                    Quaternion.identity);
+                }
+
+                if (map[y, x] == 2)
+                {
+                    field[y, x] = Instantiate(
+                    boxPrefab,
+                    new Vector3(x, map.GetLength(0) - y, 0),
+                    Quaternion.identity);
+                }
+
+            }
+        }
+
+       Debug.Log("Start");
 
     }
 
@@ -75,26 +112,46 @@ public class GameManagerScript : MonoBehaviour
         
         if(Input.GetKeyDown(KeyCode.RightArrow)) {
 
-            int playerIndex = GetPlayerIndex();
+            Vector2Int playerIndex = GetPlayerIndex();
+            Vector2Int move = new(1, 0);
 
-
-            MoveNumber(1, playerIndex, playerIndex + 1);
-            PrintArray();
+            MoveObject("Player", playerIndex, playerIndex + move);
+            
 
         }
 
         if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
 
-            int playerIndex = GetPlayerIndex();
+            Vector2Int playerIndex = GetPlayerIndex();
 
-            MoveNumber(1, playerIndex, playerIndex - 1);
-            PrintArray();
+            Vector2Int move = new(1, 0);
+
+            MoveObject("Player",playerIndex, playerIndex - move);
+
+        }
+
+        if (Input.GetKeyDown(KeyCode.UpArrow))
+        {
+
+            Vector2Int playerIndex = GetPlayerIndex();
+            Vector2Int move = new(0, 1);
+
+            MoveObject("Player", playerIndex, playerIndex - move);
 
 
         }
 
+        if (Input.GetKeyDown(KeyCode.DownArrow))
+        {
 
+            Vector2Int playerIndex = GetPlayerIndex();
+
+            Vector2Int move = new(0, 1);
+
+            MoveObject("Player", playerIndex, playerIndex + move);
+
+        }
 
     }
 }
