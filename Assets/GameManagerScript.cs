@@ -10,6 +10,7 @@ public class GameManagerScript : MonoBehaviour
     GameObject[,] field;
     public GameObject playerPrefab;
     public GameObject boxPrefab;
+    public GameObject wallPrefab;
 
     Vector2Int GetPlayerIndex()
     {
@@ -35,13 +36,7 @@ public class GameManagerScript : MonoBehaviour
 
     bool MoveObject(string tag,Vector2Int moveFrom, Vector2Int moveTo)
     {
-        if(moveTo.x < 0 || moveTo.x >= field.GetLength(1))
-        {
-            Debug.Log("Failed");
-            return false;
-        }
-
-        if(moveTo.y < 0 || moveTo.y >= field.GetLength(0))
+        if(field[moveTo.y, moveTo.x] != null && field[moveTo.y, moveTo.x].tag == "Wall")
         {
             Debug.Log("Failed");
             return false;
@@ -71,9 +66,13 @@ public class GameManagerScript : MonoBehaviour
     void Start()
     {
         map = new int[,]{
-            { 0,0,0,2,0 },
-            { 0,2,1,0,0 },
-            { 0,0,0,0,0 }
+            { 3,3,3,3,3,3,3,3,3,3 },
+            { 3,0,0,0,0,0,0,0,0,3 },
+            { 3,0,0,0,0,0,0,2,0,3 },
+            { 3,0,0,0,1,0,0,0,0,3 },
+            { 3,0,2,0,0,0,0,0,0,3 },
+            { 3,0,0,0,0,0,0,0,0,3 },
+            { 3,3,3,3,3,3,3,3,3,3 }
         };
 
         field = new GameObject[map.GetLength(0),map.GetLength(1)];
@@ -97,6 +96,15 @@ public class GameManagerScript : MonoBehaviour
                     boxPrefab,
                     new Vector3(x, map.GetLength(0) - y, 0),
                     Quaternion.identity);
+                }
+
+                if (map[y, x] == 3)
+                {
+                    field[y, x] = Instantiate(
+                    wallPrefab,
+                    new Vector3(x, map.GetLength(0) - y, 0),
+                    Quaternion.identity);
+                    field[y,x].transform.GetComponent<MeshRenderer>().material.color = Color.red;
                 }
 
             }
