@@ -11,6 +11,9 @@ public class GameManagerScript : MonoBehaviour
     public GameObject playerPrefab;
     public GameObject boxPrefab;
     public GameObject wallPrefab;
+    public GameObject housePrefab;
+
+    public GameObject clearText;
 
     Vector2Int GetPlayerIndex()
     {
@@ -62,16 +65,53 @@ public class GameManagerScript : MonoBehaviour
 
     }
 
+    bool IsClear()
+    {
+        List<Vector2Int> goals = new List<Vector2Int>();
+
+        //ƒS[ƒ‹‚Ìindex‚ğŠi”[
+
+        for(int y = 0; y < map.GetLength(0); y++)
+        {
+            for(int x = 0;  x < map.GetLength(1); x++)
+            {
+
+                if (map[y, x] == 4)
+                {
+                    goals.Add(new Vector2Int(x, y));
+                }
+
+            }
+        }
+
+        for(int i = 0; i < goals.Count; i++)
+        {
+            GameObject f = field[goals[i].y,goals[i].x];
+
+            if(f == null || f.tag != "Box")
+            {
+                return false;
+            }
+
+        }
+
+        return true;
+
+    }
+
     // Start is called before the first frame update
     void Start()
     {
+
+        Screen.SetResolution(1920, 1080, false);
+
         map = new int[,]{
             { 3,3,3,3,3,3,3,3,3,3 },
-            { 3,0,0,0,0,3,0,0,0,3 },
+            { 3,0,0,0,0,3,0,0,4,3 },
             { 3,0,0,0,0,3,0,2,3,3 },
             { 3,0,0,0,1,3,3,0,0,3 },
             { 3,0,0,3,2,0,0,0,0,3 },
-            { 3,0,0,3,0,0,0,0,0,3 },
+            { 3,0,0,3,4,0,0,0,0,3 },
             { 3,3,3,3,3,3,3,3,3,3 }
         };
 
@@ -106,6 +146,14 @@ public class GameManagerScript : MonoBehaviour
                     Quaternion.identity);
                 }
 
+                if (map[y, x] == 4)
+                {
+                    field[y, x] = Instantiate(
+                    housePrefab,
+                    new Vector3(x, map.GetLength(0) - y, 0.01f),
+                    Quaternion.identity);
+                }
+
             }
         }
 
@@ -123,7 +171,6 @@ public class GameManagerScript : MonoBehaviour
             Vector2Int move = new(1, 0);
 
             MoveObject("Player", playerIndex, playerIndex + move);
-            
 
         }
 
@@ -158,6 +205,11 @@ public class GameManagerScript : MonoBehaviour
 
             MoveObject("Player", playerIndex, playerIndex + move);
 
+        }
+
+        if(IsClear())
+        {
+            clearText.SetActive(true);
         }
 
     }
